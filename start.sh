@@ -9,8 +9,9 @@ fi
 
 ## Local IP address setting
 
-LOCAL_IP=$(hostname -i |grep -E -oh '((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])'|head -n 1)
-
+#LOCAL_IP=$(hostname -i |grep -E -oh '((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])'|head -n 1)
+LOCAL_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print $2}' | awk -F: '{print $2}')
+EMQ_NAME=emqttd
 ## EMQ Base settings and plugins setting
 # Base settings in /opt/emqttd/etc/emq.conf
 # Plugin settings in /opt/emqttd/etc/plugins
@@ -144,19 +145,6 @@ do
 done
 
 echo "['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqttd start"
-
-# Run cluster script
-
-if [[ -x "./cluster.sh" ]]; then
-    ./cluster.sh &
-fi
-
-# Join an exist cluster
-
-if [[ ! -z "$EMQ_JOIN_CLUSTER" ]]; then
-    echo "['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqttd try join $EMQ_JOIN_CLUSTER"
-    /opt/emqttd/bin/emqttd_ctl cluster join $EMQ_JOIN_CLUSTER &
-fi
 
 # Change admin password
 
