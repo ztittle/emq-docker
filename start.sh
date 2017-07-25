@@ -11,7 +11,7 @@ fi
 
 #LOCAL_IP=$(hostname -i |grep -E -oh '((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])'|head -n 1)
 LOCAL_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print $2}' | awk -F: '{print $2}')
-EMQ_NAME=emqttd
+EMQ_NAME=emq
 ## EMQ Base settings and plugins setting
 # Base settings in /opt/emqttd/etc/emq.conf
 # Plugin settings in /opt/emqttd/etc/plugins
