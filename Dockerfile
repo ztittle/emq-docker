@@ -2,7 +2,7 @@ FROM alpine:3.5
 
 MAINTAINER Huang Rui <vowstar@gmail.com>, Turtle <turtled@emqtt.io>
 
-ENV EMQ_VERSION=emq22
+ENV EMQX_VERSION=v2.4
 
 COPY ./start.sh /start.sh
 
@@ -78,31 +78,37 @@ RUN set -ex \
         ncurses-libs \
         readline \
     # add latest rebar
-    && git clone -b ${EMQ_VERSION} https://github.com/emqtt/emq-relx.git /emqttd \
-    && cd /emqttd \
+    && wget https://github.com/rebar/rebar/wiki/rebar -O /usr/bin/rebar \
+    && chmod +x /usr/bin/rebar \
+    && git clone -b ${EMQX_VERSION} https://github.com/emqtt/emq-relx.git /emqx-rel \
+    && cd /emqx-rel \
     && make \
-    && mkdir -p /opt && mv /emqttd/_rel/emqttd /opt/emqttd \
-    && cd / && rm -rf /emqttd \
-    && mv /start.sh /opt/emqttd/start.sh \
-    && chmod +x /opt/emqttd/start.sh \
-    && ln -s /opt/emqttd/bin/* /usr/local/bin/ \
+    && mkdir -p /opt && mv /emqx-rel/_rel/emqx /opt/emqx \
+    && cd / && rm -rf /emqx-rel \
+    && mv /start.sh /opt/emqx/start.sh \
+    && chmod +x /opt/emqx/start.sh \
+    && ln -s /opt/emqx/bin/* /usr/local/bin/ \
+    # remove rebar
+    && rm -rf /usr/bin/rebar \
+    && rm -rf /root/.ssh/ \
     # removing fetch deps and build deps
     && apk --purge del .build-deps .fetch-deps \
     && rm -rf /var/cache/apk/*
 
-WORKDIR /opt/emqttd
+WORKDIR /opt/emqx
 
-# start emqttd and initial environments
-CMD ["/opt/emqttd/start.sh"]
+# start emqx and initial environments
+CMD ["/opt/emqx/start.sh"]
 
-VOLUME ["/opt/emqttd/log", "/opt/emqttd/data", "/opt/emqttd/lib", "/opt/emqttd/etc"]
+VOLUME ["/opt/emqx/log", "/opt/emqx/data", "/opt/emqx/lib", "/opt/emqx/etc"]
 
-# emqttd will occupy these port:
+# emqx will occupy these port:
 # - 1883 port for MQTT
 # - 8883 port for MQTT(SSL)
 # - 8083 for WebSocket/HTTP
 # - 8084 for WSS/HTTPS
 # - 18083 for dashboard
 # - 4369 for port mapping
-# - 6000-6999 for distributed node
-EXPOSE 1883 8883 8083 8084 18083 4369 6000-6999
+# - 5369 for gen_rpc port mapping
+# - 6369 for distributed node
+EXPOSE 1883 8883 8083 8084 18083 4369 5369 6369
